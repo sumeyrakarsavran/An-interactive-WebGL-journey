@@ -26,7 +26,8 @@ SIRR is a **fully static site**. `npm run build` writes plain HTML, JS and CSS t
 |---|---|
 | **Vercel** | Import the repository. `vercel.json` sets the build, the `out/` directory, caching and security headers. |
 | **Netlify** | Import the repository. `netlify.toml` does the same. |
-| **Any static host / CDN** (Cloudflare Pages, GitHub Pages, S3 + CloudFront, nginx) | Upload the contents of `out/`. Serve `/_next/static/*` with `Cache-Control: public, max-age=31536000, immutable`, and everything else with `no-cache`. |
+| **Cloudflare Pages** | Workers & Pages → Create → Pages → Connect to Git → pick the repository. Build command `npm run build`, output directory `out`, environment variable `NODE_VERSION=22`. Headers come from `public/_headers`. |
+| **Any static host / CDN** (GitHub Pages, S3 + CloudFront, nginx) | Upload the contents of `out/`. Serve `/_next/static/*` with `Cache-Control: public, max-age=31536000, immutable`, and everything else with `no-cache`. |
 
 The site must be served over **HTTPS** or from `localhost`; browsers restrict some WebGL and audio features otherwise. It is built to live at the domain root. For a sub-path (e.g. GitHub Pages project sites), set `basePath` in `next.config.ts`.
 
