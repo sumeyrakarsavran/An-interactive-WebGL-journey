@@ -49,4 +49,6 @@ export const creationPath: CameraPath = {
   ],
   look: { yaw: 0.07, pitch: 0.05, fadeFrom: 0.86, fadeTo: 0.95 },
   handheld: 0.02,
+  // the whole flower is the point of the reveal (and the turning gesture)
+  fit: [{ from: 0.5, to: 0.66, width: 7.5 }],
 }

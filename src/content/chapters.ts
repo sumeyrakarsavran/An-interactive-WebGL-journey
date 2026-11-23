@@ -95,7 +95,7 @@ export const CHAPTERS: ChapterConfig[] = [
       { id: 'n.q1', from: 0.1, to: 0.21, kind: 'question', text: 'Kendine anlattığın hikâyenin ne kadarı gerçek?' },
       { id: 'n.q2', from: 0.27, to: 0.38, kind: 'question', text: 'İstediğin her şey, gerçekten ihtiyacın olan şey mi?' },
       { id: 'n.q3', from: 0.42, to: 0.52, kind: 'question', text: 'En çok neyi kaybetmekten korkuyorsun?' },
-      { id: 'n.hint', from: 0.57, to: 0.7, kind: 'whisper', text: 'Aynayı sil. Yavaşça.' },
+      { id: 'n.hint', from: 0.57, to: 0.7, kind: 'whisper', text: 'Aynayı yana doğru sil. Yavaşça.' },
       { id: 'n.q4', from: 0.86, to: 0.93, kind: 'question', text: 'Bakmaya cesaret ettiğin yer, geçebileceğin yerdir.' },
     ],
     stillLine: 'Ayna da bekliyor.',

@@ -44,4 +44,6 @@ export const nafsPath: CameraPath = {
   // no drifting during the polish — the mirror must stay where the hand is
   look: { yaw: 0.05, pitch: 0.03, fadeFrom: 0.5, fadeTo: 0.56 },
   handheld: 0.006,
+  // the whole mirror (1.9 m + margin) must be reachable while polishing, even on a phone
+  fit: [{ from: 0.5, to: 0.9, width: 2.5 }],
 }

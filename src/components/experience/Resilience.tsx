@@ -41,7 +41,11 @@ export function FaultNotice() {
 
   // if the world has not started after a long while, offer the text instead of waiting forever
   useEffect(() => {
-    if (ready) return
+    if (ready) {
+      // it got there in the end: the "slow" notice has nothing left to say
+      if (useExperience.getState().fault === 'slow') setFault(null)
+      return
+    }
     const id = window.setTimeout(() => {
       if (!useExperience.getState().ready && !useExperience.getState().fault) setFault('slow')
     }, 20000)

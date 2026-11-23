@@ -86,6 +86,20 @@ export function CameraRig() {
     cameraState.target.copy(T)
 
     const cam = state.camera as THREE.PerspectiveCamera
+    const fov = sampleKeys(t, path.fov)
+
+    // portrait screens see a narrow slice: step back until the subject's width fits
+    if (path.fit) {
+      const aspect = state.size.width / Math.max(1, state.size.height)
+      const halfH = Math.atan(Math.tan(THREE.MathUtils.degToRad(fov) / 2) * aspect)
+      for (const f of path.fit) {
+        const w = THREE.MathUtils.smoothstep(t, f.from - 0.03, f.from) * (1 - THREE.MathUtils.smoothstep(t, f.to, f.to + 0.03))
+        if (w <= 0) continue
+        const need = (f.width / 2) / Math.tan(halfH)
+        const d0 = P.distanceTo(T)
+        if (need > d0) P.sub(T).setLength(THREE.MathUtils.lerp(d0, need, w)).add(T)
+      }
+    }
     const dist = P.distanceTo(T)
 
     // handheld breath — proportional to distance so close-ups stay steady
@@ -106,7 +120,6 @@ export function CameraRig() {
       cam.rotateX(look.current.y * path.look.pitch * fade)
     }
 
-    const fov = sampleKeys(t, path.fov)
     if (Math.abs(cam.fov - fov) > 0.01) {
       cam.fov = fov
       cam.updateProjectionMatrix()

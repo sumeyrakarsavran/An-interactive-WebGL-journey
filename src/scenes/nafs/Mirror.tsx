@@ -157,7 +157,17 @@ export function Mirror({ quality, active }: { quality: 'low' | 'medium' | 'high'
     [built],
   )
 
-  const s = useRef({ polishing: false, earned: false, lastMeasure: 0, ripple: 0, lastRipple: 0, passRipple: 0, last: null as THREE.Vector2 | null })
+  const s = useRef({
+    polishing: false,
+    /** touch: waiting to see whether this is a sideways stroke (polish) or a vertical swipe (scroll) */
+    pending: null as null | { x: number; y: number; uv: THREE.Vector2 },
+    earned: false,
+    lastMeasure: 0,
+    ripple: 0,
+    lastRipple: 0,
+    passRipple: 0,
+    last: null as THREE.Vector2 | null,
+  })
 
   const inWindow = () => active && cameraState.chapterId === 'nafs' && cameraState.t > POLISH_FROM && cameraState.t < POLISH_TO + 0.1
 
@@ -201,22 +211,33 @@ export function Mirror({ quality, active }: { quality: 'low' | 'medium' | 'high'
     st.ripple++
   }
 
+  const begin = (uv: THREE.Vector2) => {
+    const st = s.current
+    st.polishing = true
+    st.pending = null
+    st.last = null
+    lenis?.stop()
+    if (built.u.uWater.value > 0.5) {
+      addRipple(uv, 1)
+      discover('nafs.water', LINES['nafs.water'])
+    } else {
+      paintAt(uv)
+      discover('nafs.polish', LINES['nafs.polish'])
+    }
+  }
+
   const onDown = (e: ThreeEvent<PointerEvent>) => {
     if (!inWindow() || !e.uv) return
     e.stopPropagation()
     const st = s.current
-    st.polishing = true
-    st.last = null
-    lenis?.stop()
-    if (built.u.uWater.value > 0.5) {
-      addRipple(e.uv, 1)
-      discover('nafs.water', LINES['nafs.water'])
-    } else {
-      paintAt(e.uv)
-      discover('nafs.polish', LINES['nafs.polish'])
-    }
+    const touch = e.nativeEvent.pointerType === 'touch'
+    // on touch the browser keeps vertical swipes for scrolling (touch-action: pan-y), so a visitor
+    // is never stuck at the mirror; a sideways stroke is what wipes the glass. A tap on water ripples.
+    if (touch && built.u.uWater.value <= 0.5) st.pending = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY, uv: e.uv.clone() }
+    else begin(e.uv)
     const up = () => {
       st.polishing = false
+      st.pending = null
       st.last = null
       lenis?.start()
       window.removeEventListener('pointerup', up)
@@ -228,6 +249,12 @@ export function Mirror({ quality, active }: { quality: 'low' | 'medium' | 'high'
 
   const onMove = (e: ThreeEvent<PointerEvent>) => {
     const st = s.current
+    if (st.pending && e.uv) {
+      const dx = Math.abs(e.nativeEvent.clientX - st.pending.x)
+      const dy = Math.abs(e.nativeEvent.clientY - st.pending.y)
+      if (dx > 8 && dx > dy) begin(st.pending.uv)
+      else if (dy > 10) st.pending = null // a scroll: let the browser have it
+    }
     if (!st.polishing || !e.uv) return
     if (built.u.uWater.value > 0.5) {
       const now = performance.now()
@@ -237,33 +264,6 @@ export function Mirror({ quality, active }: { quality: 'low' | 'medium' | 'high'
       }
     } else paintAt(e.uv)
   }
-
-  // during the polish window the canvas takes touch gestures; a swipe off the mirror still scrolls
-  useEffect(() => {
-    let lastY: number | null = null
-    const down = (e: PointerEvent) => {
-      if (e.pointerType === 'touch') lastY = e.clientY
-    }
-    const move = (e: PointerEvent) => {
-      if (e.pointerType !== 'touch' || lastY === null) return
-      if (!s.current.polishing && gl.domElement.style.touchAction === 'none') window.scrollBy(0, lastY - e.clientY)
-      lastY = e.clientY
-    }
-    const up = () => (lastY = null)
-    gl.domElement.addEventListener('pointerdown', down)
-    window.addEventListener('pointermove', move)
-    window.addEventListener('pointerup', up)
-    return () => {
-      gl.domElement.removeEventListener('pointerdown', down)
-      window.removeEventListener('pointermove', move)
-      window.removeEventListener('pointerup', up)
-      gl.domElement.style.touchAction = ''
-    }
-  }, [gl])
-
-  useEffect(() => {
-    if (!active) gl.domElement.style.touchAction = ''
-  }, [active, gl])
 
   useFrame((state, dt) => {
     if (!active) return
@@ -275,7 +275,6 @@ export function Mirror({ quality, active }: { quality: 'low' | 'medium' | 'high'
     // the reflection camera also sees the reflected self
     built.reflector.getReflectionCamera(camera).layers.enable(REFLECTION_LAYER)
 
-    gl.domElement.style.touchAction = inWindow() ? 'none' : ''
 
     // fresh polish fogs over again, slowly
     const ctx = built.clean.ctx

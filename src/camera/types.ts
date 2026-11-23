@@ -12,4 +12,9 @@ export interface CameraPath {
   look: { yaw: number; pitch: number; fadeFrom: number; fadeTo: number }
   /** handheld drift amplitude (metres at 1m distance) */
   handheld: number
+  /**
+   * Keep something of a given width fully in frame during a window of the chapter: on narrow
+   * (portrait) screens the camera steps back along its line of sight until `width` metres fit.
+   */
+  fit?: Array<{ from: number; to: number; width: number }>
 }
