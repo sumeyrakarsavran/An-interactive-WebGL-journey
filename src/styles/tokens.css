@@ -1,0 +1,20 @@
+:root {
+  --ivory: #f4eee2;
+  --cream: #e8ddc8;
+  --sage: #a7ae94;
+  --olive: #6e7256;
+  --earth: #4a3b2c;
+  --rose: #c9a3a0;
+  --gold: #d8be87;
+  --shadow: #15130f;
+
+  --ink: var(--ivory);
+  --ink-soft: rgba(244, 238, 226, 0.62);
+  --ink-faint: rgba(244, 238, 226, 0.28);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.45, 0, 0.2, 1);
+
+  --serif: var(--font-serif), 'Cormorant Garamond', Georgia, serif;
+  --sans: var(--font-sans), 'Inter', system-ui, sans-serif;
+}
