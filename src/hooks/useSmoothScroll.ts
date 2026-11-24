@@ -17,7 +17,16 @@ export function useSmoothScroll(reducedMotion: boolean) {
     }
     l.on('scroll', update)
     update()
+    // safety net: whatever a scene did during a gesture, lifting the finger or mouse always gives
+    // scrolling back — only the open sources panel may keep it stopped
+    const release = () =>
+      window.setTimeout(() => {
+        if (lenis === l && !document.getElementById('sources')?.classList.contains('is-open')) l.start()
+      }, 60)
+    const events = ['pointerup', 'pointercancel', 'touchend', 'touchcancel'] as const
+    events.forEach((e) => window.addEventListener(e, release, { passive: true }))
     return () => {
+      events.forEach((e) => window.removeEventListener(e, release))
       l.destroy()
       lenis = null
     }

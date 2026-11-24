@@ -211,12 +211,14 @@ export function Mirror({ quality, active }: { quality: 'low' | 'medium' | 'high'
     st.ripple++
   }
 
-  const begin = (uv: THREE.Vector2) => {
+  const begin = (uv: THREE.Vector2, lockScroll: boolean) => {
     const st = s.current
     st.polishing = true
     st.pending = null
     st.last = null
-    lenis?.stop()
+    // a mouse drag should not also scroll the page; a finger never locks scrolling (on a phone the
+    // mirror/water fills the screen, and a lock here would leave the visitor stuck)
+    if (lockScroll) lenis?.stop()
     if (built.u.uWater.value > 0.5) {
       addRipple(uv, 1)
       discover('nafs.water', LINES['nafs.water'])
@@ -233,8 +235,9 @@ export function Mirror({ quality, active }: { quality: 'low' | 'medium' | 'high'
     const touch = e.nativeEvent.pointerType === 'touch'
     // on touch the browser keeps vertical swipes for scrolling (touch-action: pan-y), so a visitor
     // is never stuck at the mirror; a sideways stroke is what wipes the glass. A tap on water ripples.
-    if (touch && built.u.uWater.value <= 0.5) st.pending = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY, uv: e.uv.clone() }
-    else begin(e.uv)
+    const water = built.u.uWater.value > 0.5
+    if (touch && !water) st.pending = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY, uv: e.uv.clone() }
+    else begin(e.uv, !touch && !water)
     const up = () => {
       st.polishing = false
       st.pending = null
@@ -252,7 +255,7 @@ export function Mirror({ quality, active }: { quality: 'low' | 'medium' | 'high'
     if (st.pending && e.uv) {
       const dx = Math.abs(e.nativeEvent.clientX - st.pending.x)
       const dy = Math.abs(e.nativeEvent.clientY - st.pending.y)
-      if (dx > 8 && dx > dy) begin(st.pending.uv)
+      if (dx > 8 && dx > dy) begin(st.pending.uv, false)
       else if (dy > 10) st.pending = null // a scroll: let the browser have it
     }
     if (!st.polishing || !e.uv) return

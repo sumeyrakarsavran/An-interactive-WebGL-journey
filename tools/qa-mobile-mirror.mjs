@@ -58,4 +58,33 @@ await sleep(600)
 const flash = await p.evaluate(() => document.querySelector('.beat--flash')?.textContent ?? '')
 check('sideways stroke polishes the mirror', flash.includes('Silindikçe') || flashBefore.includes('Silindikçe'), flash || '(no line)')
 await p.screenshot({ path: `${OUT}/mobile-nafs-after-stroke.jpg`, type: 'jpeg', quality: 75 })
+
+// right after polishing, a vertical swipe must still scroll (nothing left locked)
+{
+  const y0 = await p.evaluate(() => window.scrollY)
+  await swipe(195, 600, 195, 250)
+  await sleep(1200)
+  const y1 = await p.evaluate(() => window.scrollY)
+  check('after polishing, a vertical swipe still scrolls', y1 > y0 + 50, `scrollY ${y0} → ${y1}`)
+}
+
+// once the mirror is water: a tap ripples, and a swipe that starts on the water still scrolls
+{
+  const gw = (VH[0] + VH[1] + VH[2] * 0.9) / T
+  await p.evaluate((g) => window.scrollTo(0, g * (document.documentElement.scrollHeight - innerHeight)), gw)
+  await sleep(5000)
+  await p.touchscreen.tap(195, 420)
+  await sleep(300)
+  const y0 = await p.evaluate(() => window.scrollY)
+  await swipe(195, 600, 195, 250)
+  await sleep(1200)
+  const y1 = await p.evaluate(() => window.scrollY)
+  check('on the water, a swipe scrolls on (no lock after taps)', y1 > y0 + 50, `scrollY ${y0} → ${y1}`)
+  const locked = await p.evaluate(() => document.documentElement.classList.contains('lenis-stopped'))
+  check('scrolling is not left stopped', !locked)
+}
+
+// no blue tap flash
+const tap = await p.evaluate(() => getComputedStyle(document.querySelector('canvas')).webkitTapHighlightColor)
+check('no tap highlight on the scene', tap === 'rgba(0, 0, 0, 0)' || tap === 'transparent', tap)
 await b.close()

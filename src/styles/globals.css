@@ -2,6 +2,8 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  /* phones flash a blue/grey box over whatever is tapped; the whole scene is one element */
+  -webkit-tap-highlight-color: transparent;
 }
 html,
 body {
@@ -48,6 +50,16 @@ button {
 .stage canvas {
   display: block;
   touch-action: pan-y;
+}
+/* long-pressing the scene must not select text or open the image/callout menu */
+.stage,
+.narrative,
+.veil,
+.curtain,
+.hint {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 .scroll-track {
   position: relative;
